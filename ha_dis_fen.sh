@@ -29,6 +29,7 @@ function valid_ip()
 host=$1
 port=$2
 zkhosts=("ubuntu" "ubuntu" "ubuntu")
+username="louis"
 
 # check hostname
 if valid_ip $1; then
@@ -42,7 +43,7 @@ for element in "${zkhosts[@]}"; do
         echo "Host $element can not be reached!"
     else
         echo "$element try to execute fence!"
-        ssh louis@$element "hadoop_fence.sh $host $port"
+        ssh $username@$element "hadoop_fence.sh $host $port"
         if [ $? -eq 0 ]; then
             let "suc_num+=1"
         fi

@@ -28,6 +28,7 @@ function valid_ip()
 
 host=$1
 port=$2
+username="louis"
 
 # check hostname
 if valid_ip $1; then
@@ -42,14 +43,14 @@ if [ $? -eq 1 ]; then
 fi
 
 # 2. try to kill the process
-ssh louis@$host "fuser -v -k -n tcp $port"
+ssh $username@$host "fuser -v -k -n tcp $port"
 
 if [ $? -eq 0 ]; then
     echo "Kill the active namenode successfully!"
     exit 0
 else
 # 3. check the port works
-    ssh louis@$host "nc -z $host $port"
+    ssh $username@$host "nc -z $host $port"
     if [ $? -eq 0 ]; then
         echo "Unable to fence - it is running but we cannot kill it!"
         exit 1
