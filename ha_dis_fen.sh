@@ -29,31 +29,40 @@ function valid_ip()
 host=$1
 port=$2
 zkhosts=("ubuntu" "ubuntu" "ubuntu")
-username="louis"
+username="hadoop"
+CONN_TIMEOUT=5
 
 # check hostname
 if valid_ip $1; then
     usage
 fi
 
-suc_num=0
+unreached_hosts=0
 for element in "${zkhosts[@]}"; do
-    ping -c 1 $element > /dev/null
-    if [ $? -eq 1 ]; then
-        echo "Host $element can not be reached!"
-    else
-        echo "$element try to execute fence!"
-        ssh $username@$element "hadoop_fence.sh $host $port"
-        if [ $? -eq 0 ]; then
-            let "suc_num+=1"
-        fi
+    echo "try to connect $element to execute fence!"
+    ssh -o ConnectTimeout=$CONN_TIMEOUT $username@$element "hadoop_fence.sh $host $port" &
+done
+
+# wait the jobs
+for job in `jobs -p`
+do
+echo $job
+    wait $job
+    if [ $? -eq 0 ]; then
+        let "unreached_hosts+=1"
+    elif [ $? -eq 2 ]; then
+        echo "Host can not ssh when kill!"
+    elif [ $? -eq 1 ]; then
+        exit 0
+    elif [ $? -eq 3 ]; then
+        exit 1
     fi
 done
 
 zknum=${#zkhosts[@]}
 let qurom=zknum/2
-echo "$suc_num zks kill the active namenode successfully!"
-if [ $suc_num -gt $qurom ];then
+echo "$unreached_hosts zks kill the active namenode successfully!"
+if [ $unreached_hosts -gt $qurom ];then
     echo "Fence successfully!"
     exit 0
 else

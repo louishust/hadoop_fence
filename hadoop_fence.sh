@@ -28,34 +28,37 @@ function valid_ip()
 
 host=$1
 port=$2
-username="louis"
+username="hadoop"
+CONN_TIMEOUT=15
+
 
 # check hostname
 if valid_ip $1; then
     usage
 fi
 
-# 1. ping the host
-ping -c 1 $host > /dev/null
-if [ $? -eq 1 ]; then
-    echo "Host can not be reached!"
-    exit 0
-fi
 
-# 2. try to kill the process
-ssh $username@$host "fuser -v -k -n tcp $port"
+# return value : 0 undetermined 1 killed 3 alive
 
+# 1. try to kill the process
+ssh -o ConnectTimeout=$CONN_TIMEOUT $username@$host "fuser -v -k -n tcp $port"
 if [ $? -eq 0 ]; then
     echo "Kill the active namenode successfully!"
+    exit 1
+elif [ $? -eq 2 ]; then
+    echo "Host can not ssh when kill!"
     exit 0
 else
-# 3. check the port works
-    ssh $username@$host "nc -z $host $port"
+# 2. check the port works
+    ssh -o ConnectTimeout=$CONN_TIMEOUT $username@$host "nc -z $host $port"
     if [ $? -eq 0 ]; then
         echo "Unable to fence - it is running but we cannot kill it!"
-        exit 1
+        exit 3
+    elif [ $? -eq 2 ]; then
+        echo "Host can not ssh when nc!"
+        exit 0
     else
         echo "Active namenode process have been killed!"
-        exit 0
+        exit 1
     fi
 fi
