@@ -46,7 +46,7 @@ done
 # wait the jobs
 for job in `jobs -p`
 do
-echo $job
+    echo "wait job $job"
     wait $job
     if [ $? -eq 0 ]; then
         let "unreached_hosts+=1"
