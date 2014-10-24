@@ -43,11 +43,16 @@ fi
 
 # 1. try to kill the process
 ssh -o ConnectTimeout=$CONN_TIMEOUT $username@$host "fuser -v -k -n tcp $port"
-if [ $? -eq 0 ]; then
+ret=$?
+echo "$localhost ssh return value $ret" 
+if [ $ret -eq 0 ]; then
     echo "$localhost: Kill the active namenode successfully!"
     exit 1
-elif [ $? -eq 2 ]; then
+elif [ $ret -eq 2 ]; then
     echo "$localhost: Can not ssh when kill!"
+    exit 0
+elif [ $ret -eq 255 ]; then
+    echo "$localhost: $host ssh service is down!"
     exit 0
 else
 # 2. check the port works
@@ -57,6 +62,9 @@ else
         exit 3
     elif [ $? -eq 2 ]; then
         echo "$localhost: Can not ssh when nc!"
+        exit 0
+    elif [ $? -eq 255 ]; then
+        echo "$localhost: $host ssh service is down!"
         exit 0
     else
         echo "$localhost: Active namenode process have been killed!"
