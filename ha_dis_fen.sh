@@ -31,6 +31,7 @@ port=$2
 zkhosts=("ubuntu" "ubuntu" "ubuntu")
 username="hadoop"
 CONN_TIMEOUT=5
+LOG_FILE=/tmp/hadoop_fence.log
 
 # check hostname
 if valid_ip $1; then
@@ -40,7 +41,7 @@ fi
 unreached_hosts=0
 for element in "${zkhosts[@]}"; do
     echo "try to connect $element to execute fence!"
-    ssh -o ConnectTimeout=$CONN_TIMEOUT $username@$element "hadoop_fence.sh $host $port" &
+    ssh -o ConnectTimeout=$CONN_TIMEOUT $username@$element "hadoop_fence.sh $host $port" & >> $LOG_FILE
 done
 
 # wait the jobs
@@ -61,11 +62,11 @@ done
 
 zknum=${#zkhosts[@]}
 let qurom=zknum/2
-echo "$unreached_hosts zks kill the active namenode successfully!"
+echo "$unreached_hosts zks kill the active namenode successfully!" >> $LOG_FILE
 if [ $unreached_hosts -gt $qurom ];then
-    echo "Fence successfully!"
+    echo "Fence successfully!" >> $LOG_FILE
     exit 0
 else
-    echo "Not enough zks kill the active namenode!"
+    echo "Not enough zks kill the active namenode!" >> $LOG_FILE
     exit 1
 fi

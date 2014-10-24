@@ -30,6 +30,7 @@ host=$1
 port=$2
 username="hadoop"
 CONN_TIMEOUT=15
+localhost=`hostname`
 
 
 # check hostname
@@ -43,22 +44,22 @@ fi
 # 1. try to kill the process
 ssh -o ConnectTimeout=$CONN_TIMEOUT $username@$host "fuser -v -k -n tcp $port"
 if [ $? -eq 0 ]; then
-    echo "Kill the active namenode successfully!"
+    echo "$localhost: Kill the active namenode successfully!"
     exit 1
 elif [ $? -eq 2 ]; then
-    echo "Host can not ssh when kill!"
+    echo "$localhost: Can not ssh when kill!"
     exit 0
 else
 # 2. check the port works
     ssh -o ConnectTimeout=$CONN_TIMEOUT $username@$host "nc -z $host $port"
     if [ $? -eq 0 ]; then
-        echo "Unable to fence - it is running but we cannot kill it!"
+        echo "$localhost: Unable to fence - it is running but we cannot kill it!"
         exit 3
     elif [ $? -eq 2 ]; then
-        echo "Host can not ssh when nc!"
+        echo "$localhost: Can not ssh when nc!"
         exit 0
     else
-        echo "Active namenode process have been killed!"
+        echo "$localhost: Active namenode process have been killed!"
         exit 1
     fi
 fi
