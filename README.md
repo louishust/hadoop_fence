@@ -25,7 +25,7 @@ q_datanode.sh: The script is used for datanode to check the dead node is truly d
     <name>dfs.ha.fencing.methods</name>
     <value>
         sshfence
-        q_hadoop_fence.sh $target_host $target_port
+        shell(q_hadoop_fence.sh $target_host $target_port)
     </value>
    </propery>
 
