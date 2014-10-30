@@ -47,14 +47,17 @@ done
 for job in `jobs -p`
 do
     wait $job
+    echo "ssh datanode return $?"
     if [ $? -eq 0 ]; then
         let "unreached_hosts+=1"
     elif [ $? -eq 2 ]; then
-        echo "Host can not ssh when kill!"
+        echo "Can not ssh to datanode, ret = 2!"
     elif [ $? -eq 1 ]; then
         exit 0
     elif [ $? -eq 3 ]; then
         exit 1
+    elif [ $? -eq 255 ]; then
+        echo "Can not ssh to datanode, ret= 255!"
     fi
 done
 
